@@ -1,0 +1,28 @@
+{
+    "name": "mahmoud-m-abadi/excel-export-with-relations",
+    "description": "Laravel excel export with multiple relations",
+    "type": "project",
+    "require": {
+        "maatwebsite/excel": "3.1.x-dev"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "MahmoudMAbadi\\ExcelExportWithRelation\\ExcelExportWithRelationServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "MahmoudMAbadi\\ExcelExportWithRelation\\": "src/"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mahmoud MohammadAbadi",
+            "email": "mahmood.nh2008@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev"
+}
