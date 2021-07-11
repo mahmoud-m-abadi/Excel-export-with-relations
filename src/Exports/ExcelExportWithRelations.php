@@ -4,9 +4,9 @@ namespace MahmoudMAbadi\ExcelExportWithRelation\Exports;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
+use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -20,27 +20,27 @@ class ExcelExportWithRelations implements FromView, WithEvents
     /**
      * @var ModelExportableInterface
      */
-    private ModelExportableInterface $model;
+    private $model;
 
     /**
      * @var array
      */
-    private array $headers;
+    private $headers;
 
     /**
      * @var array
      */
-    private array $relations = [];
+    private $relations = [];
 
     /**
      * @var int|null
      */
-    private ?int $typeId;
+    private $typeId;
 
     /**
      * @var array
      */
-    private array $fields;
+    private $fields;
 
     /**
      * ExcelExport constructor.
