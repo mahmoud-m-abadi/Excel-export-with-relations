@@ -135,11 +135,9 @@ class ExcelExportWithRelations implements FromView, WithEvents
     {
         foreach ($this->generateHeaders() as $headerKey => $headerValue) {
             if (is_array($headerValue) and isset($headerValue['relation'])) {
-                if ($headerValue['relation']) {
-                    $tdValues->put($headerKey, (optional($item->{$headerValue['relation']})->{$headerValue['field']} ?? null));
-                } elseif (isset($headerValue['values'])) {
-                    $tdValues->put($headerKey, ($headerValue['values'][$item->{$headerKey}] ?? null));
-                }
+                $tdValues->put($headerKey, (optional($item->{$headerValue['relation']})->{$headerValue['field']} ?? null));
+            } else if (is_array($headerValue) and isset($headerValue['values'])) {
+                $tdValues->put($headerKey, ($headerValue['values'][$item->{$headerKey}] ?? null));
             } else {
                 $tdValues->put($headerKey, $item->$headerKey);
             }
