@@ -124,7 +124,7 @@ class ExcelExportWithRelations implements FromView, WithEvents
      */
     public function generateRelationHeaders(): Collection
     {
-        $this->headerRelationRecursive($this->fields['relations']);
+        $this->headerRelationRecursive($this->fields['relations'] ?? []);
         return $this->headerRelations;
     }
 
@@ -205,8 +205,8 @@ class ExcelExportWithRelations implements FromView, WithEvents
      */
     public function generateRelationsColumnValues(Collection $tdValues, Model $item): Collection
     {
-        $this->columnRelationCountRecursive($item, $this->fields['relations']);
-        $this->columnRelationRecursive($item, $this->fields['relations']);
+        $this->columnRelationCountRecursive($item, $this->fields['relations'] ?? []);
+        $this->columnRelationRecursive($item, $this->fields['relations'] ?? []);
 
         $tdValues->put('relations', $this->generatedRelations);
         $tdValues->put('relations_count', $this->countMaxRelations);
