@@ -21,4 +21,17 @@ class PostExport extends Model implements ModelExportableInterface
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * @return array
+     */
+    public static function exportShowData(): array
+    {
+        return [
+            'id' => 'ID',
+            'title' => 'title',
+            'body' => 'Body',
+            'published_at' => 'Published at',
+        ];
+    }
 }

@@ -12,20 +12,24 @@
             </th>
         @endforeach
         @foreach($relationHeaders as $headRelationKey => $headRelationValues)
-            <th valign="center" colspan="{{count($headRelationValues['fields'])}}">
-                {{$headRelationValues['name']}}
+            <th valign="center" colspan="{{count($headRelationValues)}}">
+                {{$headRelationKey}}
             </th>
         @endforeach
     </tr>
     @if(count($relationHeaders))
         <tr>
-        @foreach($relationHeaders as $headRelationKey => $headRelationValues)
-            @foreach($headRelationValues['fields'] as $headRelationKey => $headRelationValue)
-                <th >
-                    {{$headRelationValue}}
-                </th>
+            @foreach($relationHeaders as $headRelationKey => $headRelationValues)
+                @foreach($headRelationValues as $headRelationKey => $headRelationValue)
+                    <th >
+                        @if(is_array($headRelationValue))
+                            {{$headRelationValue['name']}}
+                        @else
+                            {{$headRelationValue}}
+                        @endif
+                    </th>
+                @endforeach
             @endforeach
-        @endforeach
         </tr>
     @endif
     </thead>
@@ -42,16 +46,17 @@
                     @if($i == 0)
                         @foreach($row->tdValues as $tdKey => $tdValue)
                             @continue($tdKey == 'id' or $tdKey == 'relations_count' or $tdKey == 'relations')
-                                <td rowspan="{{$countRelations}}">{{$tdValue}}</td>
+                            <td rowspan="{{$countRelations}}">{{$tdValue}}</td>
                         @endforeach
                     @endif
                     @php
                         $i++;
                     @endphp
 
-                    @foreach($relationHeaders as $relationHeader)
-                        @foreach($relationHeader['fields'] as $relationHeaderFieldKey => $relationHeaderField)
-                            <td >{{optional($valueRelation[$relationHeader['relation']])[$relationHeaderFieldKey]}}</td>
+
+                    @foreach($valueRelation as $valueRKey => $valueRValue)
+                        @foreach($valueRValue as $relationHeaderField)
+                            <td >{{$relationHeaderField}}</td>
                         @endforeach
                     @endforeach
                 </tr>

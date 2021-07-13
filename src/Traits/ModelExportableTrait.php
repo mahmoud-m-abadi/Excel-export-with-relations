@@ -7,10 +7,10 @@ trait ModelExportableTrait
     /**
      * @return array
      */
-    public function exportShowData(): array
+    public static function exportShowData(): array
     {
         return [
-            self::ID => '#',
+            'id' => '#',
         ];
     }
 }

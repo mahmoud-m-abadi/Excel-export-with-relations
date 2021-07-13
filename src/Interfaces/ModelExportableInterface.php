@@ -7,5 +7,5 @@ interface ModelExportableInterface
     /**
      * @return array
      */
-    public function exportShowData(): array;
+    public static function exportShowData(): array;
 }

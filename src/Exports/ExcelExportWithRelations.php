@@ -2,11 +2,11 @@
 
 namespace MahmoudMAbadi\ExcelExportWithRelation\Exports;
 
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
-use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\RegistersEventListeners;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -33,6 +33,11 @@ class ExcelExportWithRelations implements FromView, WithEvents
     private $relations = [];
 
     /**
+     * @var Collection
+     */
+    private $headerRelations = [];
+
+    /**
      * @var int|null
      */
     private $typeId;
@@ -41,6 +46,16 @@ class ExcelExportWithRelations implements FromView, WithEvents
      * @var array
      */
     private $fields;
+
+    /**
+     * @var int
+     */
+    private $countMaxRelations = 0;
+
+    /**
+     * @var Collection
+     */
+    private $generatedRelations = [];
 
     /**
      * ExcelExport constructor.
@@ -55,7 +70,10 @@ class ExcelExportWithRelations implements FromView, WithEvents
     ) {
         $this->model = $model;
         $this->typeId = $typeId;
-        $this->fields = count($fields) ? $fields : $this->model->exportShowData();
+        $this->fields = count($fields) ? $fields : $this->model::exportShowData();
+        $this->relations = collect();
+        $this->headerRelations = collect();
+        $this->generatedRelations = collect();
     }
 
     /**
@@ -104,9 +122,30 @@ class ExcelExportWithRelations implements FromView, WithEvents
     /**
      * @return array
      */
-    public function generateRelationHeaders(): array
+    public function generateRelationHeaders(): Collection
     {
-        return $this->fields['relations'] ?? [];
+        $this->headerRelationRecursive($this->fields['relations']);
+        return $this->headerRelations;
+    }
+
+    /**
+     * @param $relations
+     */
+    public function headerRelationRecursive($relations)
+    {
+        foreach ($relations as $relation) {
+            $justMainHeader = $relation['fields'];
+
+            $this->headerRelations->put($relation['name'],
+                collect($justMainHeader)->reject(function ($item, $index) {
+                    return $index == 'relations';
+                })
+            );
+
+            if(isset($relation['fields']['relations']) and count($relation['fields']['relations'] )) {
+                $this->headerRelationRecursive($relation['fields']['relations']);
+            }
+        }
     }
 
     /**
@@ -134,16 +173,28 @@ class ExcelExportWithRelations implements FromView, WithEvents
     public function generateMainColumnValues(Collection $tdValues, Model $item): Collection
     {
         foreach ($this->generateHeaders() as $headerKey => $headerValue) {
-            if (is_array($headerValue) and isset($headerValue['relation'])) {
-                $tdValues->put($headerKey, (optional($item->{$headerValue['relation']})->{$headerValue['field']} ?? null));
-            } else if (is_array($headerValue) and isset($headerValue['values'])) {
-                $tdValues->put($headerKey, ($headerValue['values'][$item->{$headerKey}] ?? null));
-            } else {
-                $tdValues->put($headerKey, $item->$headerKey);
-            }
+            $tdValues->put($headerKey, $this->generateColumnValues($item, $headerKey, $headerValue));
         }
 
         return $tdValues;
+    }
+
+    /**
+     * @param Model $item
+     * @param string $fieldKey
+     * @param mixed $field
+     * @return mixed|null
+     */
+    public function generateColumnValues(Model $item, string $fieldKey, $field)
+    {
+        if (is_array($field) and isset($field['relation'])) {
+            return optional($item->{$field['relation']})->{$field['field']} ?? null;
+        }
+        if (is_array($field) and isset($field['values'])) {
+            return $field['values'][$item->{$fieldKey}] ?? null;
+        }
+
+        return $item->$fieldKey;
     }
 
     /**
@@ -154,35 +205,82 @@ class ExcelExportWithRelations implements FromView, WithEvents
      */
     public function generateRelationsColumnValues(Collection $tdValues, Model $item): Collection
     {
-        $countMaxRelations = 0;
-        foreach ($this->generateRelationHeaders() as $headerValue) {
-            if (!is_null($item->{$headerValue['relation']}) and $item->{$headerValue['relation']}->count() > $countMaxRelations) {
-                $countMaxRelations = $item->{$headerValue['relation']}->count();
-            }
-        }
+        $this->columnRelationCountRecursive($item, $this->fields['relations']);
+        $this->columnRelationRecursive($item, $this->fields['relations']);
 
-        $items = collect();
-        for ($i = 0; $i < $countMaxRelations; $i++) {
-            $relationItems = collect();
-            foreach ($this->generateRelationHeaders() as $headerValue) {
-                $fields = collect();
-                foreach ($headerValue['fields'] as $fieldKey => $field) {
-                    if (isset($item->{$headerValue['relation']}[$i])) {
-                        $fields->put($fieldKey, $item->{$headerValue['relation']}[$i]->$fieldKey);
-                    }
-                }
-                $relationItems->put(
-                    $headerValue['relation'],
-                    $fields->count() ? $fields : null
-                );
-            }
-            $items->put($i, $relationItems);
-        }
-
-        $tdValues->put('relations', $items);
-        $tdValues->put('relations_count', $countMaxRelations);
+        $tdValues->put('relations', $this->generatedRelations);
+        $tdValues->put('relations_count', $this->countMaxRelations);
 
         return $tdValues;
+    }
+
+    /**
+     * @param $model
+     * @param $relations
+     */
+    public function columnRelationCountRecursive($model, $relations)
+    {
+        foreach ($relations as $relation) {
+            if (!is_null($model->{$relation['relation']}) and $model->{$relation['relation']}->count() > $this->countMaxRelations) {
+                $this->countMaxRelations = $model->{$relation['relation']}->count();
+            }
+
+            if(isset($relation['fields']['relations']) and count($relation['fields']['relations'] )) {
+                foreach ($model->{$relation['relation']} as $modelRelation) {
+                    $this->columnRelationCountRecursive($modelRelation, $relation['fields']['relations']);
+                }
+            }
+        }
+    }
+
+    /**
+     * @param ModelExportableInterface $model
+     * @param array $relations
+     */
+    public function columnRelationRecursive($model, array $relations)
+    {
+        $this->generatedRelations = collect();
+
+        for ($i = 0; $i < $this->countMaxRelations; $i++) {
+            $relationItems = $this->columnRelationValuesRecursive($i, $model, $relations, collect());
+            $this->generatedRelations->put($i, $relationItems);
+        }
+    }
+
+    /**
+     * @param int $i
+     * @param Model $model
+     * @param array $relation
+     * @param Collection $relationValueItems
+     * @return Collection
+     */
+    public function columnRelationValuesRecursive($i, $model, $relation, $relationValueItems)
+    {
+        foreach ($relation as $allFields) {
+            $fieldsValues = collect();
+            foreach ($allFields['fields'] as $fieldKey => $field) {
+                if($fieldKey != 'relations') {
+                    if (isset($model->{$allFields['relation']}[$i])) {
+                        $fieldsValues->put($fieldKey, $this->generateColumnValues($model->{$allFields['relation']}[$i], $fieldKey, $field));
+                    } else {
+                        $fieldsValues->put($fieldKey, null);
+                    }
+                }
+            }
+
+            $relationValueItems->put(
+                $allFields['relation'].$i,
+                $fieldsValues->count() ? $fieldsValues : null
+            );
+
+            if(isset($allFields['fields']['relations'])) {
+                foreach ($model->{$allFields['relation']} as $modelRelation) {
+                    $relationValueItems = $this->columnRelationValuesRecursive($i, $modelRelation, $allFields['fields']['relations'], $relationValueItems);
+                }
+            }
+        }
+
+        return $relationValueItems;
     }
 
     /**

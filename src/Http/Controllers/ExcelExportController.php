@@ -5,6 +5,7 @@ namespace MahmoudMAbadi\ExcelExportWithRelation\Http\Controllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use MahmoudMAbadi\ExcelExportWithRelation\Exports\ExcelExportWithRelations;
+use MahmoudMAbadi\ExcelExportWithRelation\Models\PostExport;
 use MahmoudMAbadi\ExcelExportWithRelation\Models\UserExport;
 
 class ExcelExportController extends Controller
@@ -16,18 +17,14 @@ class ExcelExportController extends Controller
     public function __invoke(Request $request)
     {
         $data = [
-            'name' => 'Title',
-            'email' => 'Body',
+            'name' => 'Name',
+            'email' => 'Email',
             'created_at' => 'Created at',
             'relations' => [
                 'posts' => [
                     'name' => 'Posts',
                     'relation' => 'posts',
-                    'fields' => [
-                        'title' => 'Title',
-                        'body' => 'Body',
-                        'published_at' => 'Published at',
-                    ]
+                    'fields' => PostExport::exportShowData()
                 ]
             ],
         ];
