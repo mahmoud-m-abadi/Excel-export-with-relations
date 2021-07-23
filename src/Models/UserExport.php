@@ -20,4 +20,23 @@ class UserExport extends Model implements ModelExportableInterface
     {
         return $this->hasMany(PostExport::class, 'user_id');
     }
+
+    /**
+     * @return array
+     */
+    public static function exportShowData(): array
+    {
+        return [
+            'name' => 'Name',
+            'email' => 'Email',
+            'created_at' => 'Created at',
+            'relations' => [
+                'posts' => [
+                    'name' => 'Posts',
+                    'relation' => 'posts',
+                    'fields' => PostExport::exportShowData()
+                ]
+            ],
+        ];
+    }
 }

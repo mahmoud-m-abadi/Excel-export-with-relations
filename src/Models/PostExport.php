@@ -2,6 +2,7 @@
 
 namespace MahmoudMAbadi\ExcelExportWithRelation\Models;
 
+use App\Models\PostCommentExport;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,14 @@ class PostExport extends Model implements ModelExportableInterface
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments()
+    {
+        return $this->hasMany(PostCommentExport::class, 'post_id');
+    }
+
+    /**
      * @return array
      */
     public static function exportShowData(): array
@@ -32,6 +41,13 @@ class PostExport extends Model implements ModelExportableInterface
             'title' => 'title',
             'body' => 'Body',
             'published_at' => 'Published at',
+            'relations' => [
+                'comments' => [
+                    'name' => 'Post Comments',
+                    'relation' => 'comments',
+                    'fields' => PostCommentExport::exportShowData()
+                ]
+            ]
         ];
     }
 }

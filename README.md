@@ -8,12 +8,12 @@ To install package copy below link. <br />
 
 ### Requirement
 <ul>
-    <li>PHP Version >= 7.4</li>
+    <li>PHP Version >= 7.3</li>
     <li>Laravel 8</li>
 </ul>
 
 ## Description
-Assume you have one User model and Post model. User has some posts and you want to make an export report with related posts in one Excel file.
+Assumed you have one User model and Post model with a Post Comment Model. User has many posts and each post has many comments and you want to make an export report with related posts in one Excel file.
 <br />
 <br />
 Now you can make a controller and use of the below Export class from this package:
@@ -22,7 +22,8 @@ Now you can make a controller and use of the below Export class from this packag
 `MahmoudMAbadi\ExcelExportWithRelation\Exports\ExcelExportWithRelations`
 <br />
 
-Your models must have `ModelExportableInterface` to prepare to export using this package.
+Your target model to export must have `ModelExportableInterface` to prepare to export using this package.
+For example: If you want to make export from User model, you need to add `ModelExportableInterface` class to your UserModel. You can also use `ModelExportableTrait` to make relevant function or replace it to your own.
 Also there is one Trait to define default fields with relations.
 <br />
 
@@ -42,33 +43,17 @@ use MahmoudMAbadi\ExcelExportWithRelation\Models\UserExport;
 
 class ExcelExportController extends Controller
 {
-/**
-* @param Request $request
-* @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
-*/
-public function __invoke(Request $request)
-{
-    $data = [
-        'name' => 'Title',
-        'email' => 'Body',
-        'created_at' => 'Created at',
-        'relations' => [
-            'posts' => [
-                'name' => 'Posts',
-                'relation' => 'posts',
-                'fields' => [
-                    'title' => 'Title',
-                    'body' => 'Body',
-                    'published_at' => 'Published at',
-                ]
-            ]
-        ],
-    ];
-
-        return (new ExcelExportWithRelations(new UserExport(), $data))->download('users.xlsx');
+    /**
+    * @param Request $request
+    * @return \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    */
+    public function __invoke(Request $request)
+    {
+        return (new ExcelExportWithRelations(new UserExport()))->download('users.xlsx');
     }
 }
 ```
+You can check the UserExport model in the package to find out what has been done there.
 
 ## License
 
