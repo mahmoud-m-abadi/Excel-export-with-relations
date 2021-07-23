@@ -13,21 +13,22 @@ To install package copy below link. <br />
 </ul>
 
 ## Description
-Assumed you have one User model and Post model with a Post Comment Model. User has many posts and each post has many comments and you want to make an export report with related posts in one Excel file.
+It's assumed that you have one User model, Post model and Post Comment Model. 
+User has many posts and each post has many comments and you want to make an export report for User model along with all relations in one Excel file.
 <br />
 <br />
-Now you can make a controller and use of the below Export class from this package:
+Now you can make a controller and use the below Export class from this package:
 <br />
 
 `MahmoudMAbadi\ExcelExportWithRelation\Exports\ExcelExportWithRelations`
 <br />
 
 Your target model to export must have `ModelExportableInterface` to prepare to export using this package.
-For example: If you want to make export from User model, you need to add `ModelExportableInterface` class to your UserModel. You can also use `ModelExportableTrait` to make relevant function or replace it to your own.
-Also there is one Trait to define default fields with relations.
+For example: If you want to make export from User model, you need to add `ModelExportableInterface` class to the UserModel.
+You can also use `ModelExportableTrait` to make relevant function or replace it to your own.
 <br />
 
-Actually, I've attached some example as Controllers, Models, Route. You can check the files and make sure you proceed correctly.
+Actually, I've attached some example as Controllers, Models, Route. You can check the files and make sure you are doing process correctly.
 <br />
 
 Controller Example:
@@ -53,7 +54,7 @@ class ExcelExportController extends Controller
     }
 }
 ```
-You can check the UserExport model in the package to find out what has been done there.
+You can check the UserExport model in the package to find out what's been done there.
 
 ## License
 
